@@ -1,0 +1,5 @@
+{
+  "name": "LocalPy Runner",
+  "description": "A privacy-first, offline-capable Python runtime environment running entirely in your browser using Pyodide.",
+  "requestFramePermissions": []
+}
