@@ -38,10 +38,10 @@ export function RightPanel({ code = "" }: Props) {
   }, [code]);
 
   return (
-    <div className="flex-1 flex flex-col min-w-0 bg-slate-900/20 overflow-auto relative p-4">
+    <div className=" flex-1 flex flex-col min-w-0 bg-slate-900/20 overflow-auto relative p-4">
       <pre
         ref={preRef}
-        className="language-python text-sm p-4 rounded-lg bg-slate-950 border border-slate-800 overflow-auto"
+        className="min-h-[95%] language-python text-sm p-4 rounded-lg bg-slate-950 border border-slate-800 overflow-auto"
       >
         {/* Prism highlights dynamically */}
       </pre>
