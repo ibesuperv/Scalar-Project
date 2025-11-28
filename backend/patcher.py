@@ -37,7 +37,12 @@ NEVER say "added a comment" as a fix — that's not a real fix!
 For every line you change, add ONE comment at the end like:
 FIXED: removed extra comma in list
 FIXED: use len(STACK) instead of 10 to prevent IndexError
+FIXED: corrected preorder traversal (root first)
+FIXED: prevented infinite loop
 FIXED: changed FOR to for (Python is case-sensitive)
+FIXED: moved append to correct position
+FIXED: fixed current logic
+FIXED: current recursion logic
 If the loop goes beyond list length → use range(len(STACK)) or for item in STACK
 NEVER keep while x >= 0: with x += 1
 Return ONLY the fixed code in one python block

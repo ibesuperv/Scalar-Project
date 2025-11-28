@@ -15,69 +15,95 @@ function App() {
   const [inputCode, setInputCode] = useState(INITIAL_PYTHON_CODE);
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [isRunning, setIsRunning] = useState(false);
-  const [rightPanelCode, setRightPanelCode] = useState<string>(""); // RightPanel shows AI output
+  const [rightPanelCode, setRightPanelCode] = useState<string>("");
 
   const addLog = useCallback((message: string, type: LogEntry["type"] = "info") => {
     setLogs((prev) => [
       ...prev,
-      { id: Math.random().toString(36).substring(7), type, message, timestamp: Date.now() },
+      { id: Math.random().toString(36).slice(2), type, message, timestamp: Date.now() },
     ]);
   }, []);
 
-  const handleRunCode = async () => {
+  // 🔥 Runs Python code AND returns the captured output
+  const executePython = async (code: string) => {
+    let captured = "";
+    await pyodideManager.runCode(
+      code,
+      text => { captured += text + "\n"; },
+      err => { captured += "\nERROR: " + err; }
+    );
+    return captured.trim();
+  };
+
+  const handleRunCode = async (override?: string) => {
+    const codeToRun = override ?? inputCode;
     setIsRunning(true);
-    setLogs([]); // clear terminal for new run
+    addLog("Running code...", "system");
 
-    addLog("Initializing Python runtime...", "system");
+    const output = await executePython(codeToRun);
 
-    try {
-      addLog("Running code execution...", "info");
+    addLog(output || "(no output)", "info");
+    addLog("Execution finished", "success");
 
-      let capturedOutput = "";
+    setIsRunning(false);
+  };
 
-      await pyodideManager.runCode(
-        inputCode,
-        (text) => {
-          capturedOutput += text + "\n";
-        },
-        (err) => {
-          addLog(`Runtime Error:\n${err}`, "error");
-          throw new Error(err);
-        }
-      );
+  // 🔥 Called by RightPanel → user clicks "Use Code"
+ const handleUseFixedCode = async (fixedCode: string) => {
+  setInputCode(fixedCode);
 
-      if (capturedOutput.trim()) addLog(`Output:\n${capturedOutput}`, "info");
+  // Append AFTER AI logs without clearing previous logs
+  addLog("=== AFTER AI FIX (Execution Output) ===", "system");
 
-      addLog("Execution completed successfully.", "success");
-    } catch {
-      // error already logged
-    } finally {
-      setIsRunning(false);
-    }
+  const afterOutput = await executePython(fixedCode);
+
+  addLog(afterOutput || "(no output)", "info");
+};
+
+
+  // 🔥 Toolbar calls this AFTER backend returns AI fixed code
+  const handleAIComparison = async (beforeCode: string, afterCode: string) => {
+    setLogs([]); // clear logs
+
+    setIsRunning(true);
+
+    addLog("=== BEFORE AI FIX (Execution Output) ===", "system");
+    const beforeOutput = await executePython(beforeCode);
+    addLog(beforeOutput || "(no output)", "info");
+
+    addLog("=== AFTER AI FIX (Execution Output) ===", "system");
+    const afterOutput = await executePython(afterCode);
+    addLog(afterOutput || "(no output)", "success");
+
+    setIsRunning(false);
   };
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-200 flex flex-col h-screen">
       <Header />
       <main className="flex-1 flex overflow-hidden">
+
         {/* Left Panel */}
         <div className="flex-1 flex flex-col min-w-0 border-r border-slate-800 bg-slate-950">
           <Editor value={inputCode} onChange={setInputCode} />
 
           <Toolbar
             isRunning={isRunning}
-            onRun={handleRunCode}
+            onRun={() => handleRunCode()}
             code={inputCode}
             setRightPanelCode={setRightPanelCode}
-            // Optional: uncomment if you want to replace editor with fixed code
-            // setInputCode={setInputCode}
+            onAIComparison={handleAIComparison}
           />
 
           <OutputTerminal logs={logs} />
         </div>
 
         {/* Right Panel */}
-        <RightPanel code={rightPanelCode} />
+        <RightPanel 
+          code={rightPanelCode}
+          onUseCode={handleUseFixedCode}
+        />
+
       </main>
 
       <footer className="bg-slate-950 border-t border-slate-800 px-4 py-1 flex justify-between items-center text-[10px] text-slate-500 shrink-0">

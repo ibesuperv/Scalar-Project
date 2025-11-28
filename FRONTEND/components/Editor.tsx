@@ -10,19 +10,19 @@ type Props = {
 
 export function Editor({ value, onChange }: Props) {
   return (
-    <div className="flex-1 min-h-0">  {/* KEY FIX: min-h-0 keeps it from overflowing */}
+    <div className="flex-1 min-h-0">
       <CodeMirror
         value={value}
         theme={oneDark}
         extensions={[python()]}
-        height="100%"                       // stays inside container
+        height="100%"
         basicSetup={{
           lineNumbers: true,
           foldGutter: true,
           highlightActiveLine: true,
         }}
         onChange={(v) => onChange(v)}
-        className="h-full overflow-auto"     // scroll internally, not expand
+        className="h-full overflow-auto"
       />
     </div>
   );
